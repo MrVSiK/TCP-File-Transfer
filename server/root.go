@@ -19,6 +19,8 @@ func main(){
 	}
 	defer listen.Close()
 
+	println("Server has started on PORT " + PORT)
+
 	for {
 		conn, err := listen.Accept()
 		if err != nil {
@@ -29,6 +31,7 @@ func main(){
 }
 
 func handleIncomingRequests(conn net.Conn){
+	println("Received a request: " + conn.RemoteAddr().String())
 	buffer := make([]byte, 1024)
 	_, err := conn.Read(buffer)
 	if err != nil {
