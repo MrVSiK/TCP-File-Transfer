@@ -5,15 +5,17 @@ import (
 	"log"
 )
 
-func main(){
-	conf := &tls.Config{};
-
-	conn, err := tls.Dial("tcp", "localhost:9000", conf);
-	if err != nil {
-		log.Fatal(err);
+func main() {
+	conf := &tls.Config{
+		InsecureSkipVerify: true,
 	}
 
-	defer conn.Close();
+	conn, err := tls.Dial("tcp", "localhost:9090", conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer conn.Close()
 
 	_, err = conn.Write([]byte("Hello World"))
 
