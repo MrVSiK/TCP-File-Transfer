@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"log"
 	"net"
+	"os"
 )
 
 const (
@@ -10,6 +13,23 @@ const (
 	PORT = "9001"
 	TYPE = "tcp"
 )
+
+func getDataFromFile(path string) []byte {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var fileData bytes.Buffer;
+	fileData.Write(content);
+
+	lengthData := make([]byte, 4);
+
+	binary.BigEndian.PutUint32(lengthData, uint32(fileData.Len()));
+
+
+	return append(lengthData, content...);
+
+}
 
 func main(){
 	tcpServer, err := net.ResolveTCPAddr(TYPE, HOST + ":" + PORT)
@@ -22,7 +42,7 @@ func main(){
 		log.Fatal(err)
 	}
 
-	_, err = conn.Write([]byte("Hello World"))
+	_, err = conn.Write(getDataFromFile("text.txt"))
 
 	if err != nil {
 		log.Fatal(err)

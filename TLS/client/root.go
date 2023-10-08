@@ -1,9 +1,29 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
+	"encoding/binary"
 	"log"
+	"os"
 )
+
+func getDataFromFile(path string) []byte {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var fileData bytes.Buffer;
+	fileData.Write(content);
+
+	lengthData := make([]byte, 4);
+
+	binary.BigEndian.PutUint32(lengthData, uint32(fileData.Len()));
+
+
+	return append(lengthData, content...);
+
+}
 
 func main() {
 	conf := &tls.Config{
@@ -17,7 +37,7 @@ func main() {
 
 	defer conn.Close()
 
-	_, err = conn.Write([]byte("Hello World"))
+	_, err = conn.Write(getDataFromFile("text.txt"))
 
 	if err != nil {
 		log.Fatal(err)
