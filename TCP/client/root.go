@@ -32,7 +32,7 @@ func prepareMetadata(file *os.File) MetaData {
 	header := MetaData{
 		name:     file.Name(),
 		fileSize: uint32(size),
-		reps:     uint32(size / 1024),
+		reps:     uint32(size / 1024) + 1,
 	}
 
 	return header
@@ -52,17 +52,17 @@ func sendFile(path string, conn *net.TCPConn) {
 	// Start (all 1s) - 1 byte, reps - 4 bytes, lengthofname - 4 bytes, name - `lengthofname` bytes, End (all 0s) - 1 byte;
 	headerBuffer := []byte{1}
 
-	// Start (all 0s) - 1 byte, Segment number - 4 bytes, lengthofdata - 4 bytes, Data - `lengthofdata` bytes, End (all 0s) - 1 byte
+	// Start (all 0s) - 1 byte, Segment number - 4 bytes, lengthofdata - 4 bytes, Data - `lengthofdata` bytes, End (all 1s) - 1 byte
 	segmentBuffer := []byte{0}
 
 	// Temporary buffer for uint32
 	temp := make([]byte, 4)
 
-	for i := 0; i < int(header.reps)+1; i++ {
+	for i := 0; i < int(header.reps); i++ {
 		n, _ := file.ReadAt(dataBuffer, int64(i*1014))
 
 		if i == 0 {
-			binary.BigEndian.PutUint32(temp, header.reps+1)
+			binary.BigEndian.PutUint32(temp, header.reps)
 			headerBuffer = append(headerBuffer, temp...)
 
 			binary.BigEndian.PutUint32(temp, uint32(len(header.name)))
@@ -117,7 +117,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sendFile("text.txt", conn)
+	sendFile("Me.png", conn)
 
 	received := make([]byte, 1024)
 
