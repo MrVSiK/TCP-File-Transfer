@@ -80,6 +80,8 @@ func handleIncomingRequests(conn net.Conn){
 		} else {
 			log.Fatal("Invalid Segment");
 		}
+
+		conn.Write([]byte("Segment Received"));
 	}
 
 	time := time.Now().UTC().Format("Monday, 02-Jan-06 15:04:05 MST");

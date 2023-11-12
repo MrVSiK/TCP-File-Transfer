@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -58,6 +59,9 @@ func sendFile(path string, conn *net.TCPConn) {
 	// Temporary buffer for uint32
 	temp := make([]byte, 4)
 
+	// Temporary buffer for responses received
+	received := make([]byte, 100);
+
 	for i := 0; i < int(header.reps); i++ {
 		n, _ := file.ReadAt(dataBuffer, int64(i*1014))
 
@@ -77,8 +81,6 @@ func sendFile(path string, conn *net.TCPConn) {
 				log.Fatal(err)
 			}
 
-			received := make([]byte, 1024);
-
 			_, err = conn.Read(received)
 
 			if err != nil {
@@ -89,7 +91,7 @@ func sendFile(path string, conn *net.TCPConn) {
 		}
 
 		binary.BigEndian.PutUint32(temp, uint32(i))
-		segmentBuffer = append(segmentBuffer, temp...)
+		segmentBuffer = append(segmentBuffer, temp...);
 
 		binary.BigEndian.PutUint32(temp, uint32(n))
 		segmentBuffer = append(segmentBuffer, temp...)
@@ -97,11 +99,21 @@ func sendFile(path string, conn *net.TCPConn) {
 		segmentBuffer = append(segmentBuffer, dataBuffer...)
 		segmentBuffer = append(segmentBuffer, 1)
 
-		_, err = conn.Write(segmentBuffer)
+		_, err = conn.Write(segmentBuffer);
+
+		if err != nil {
+			log.Fatal(err);
+		}
+
+		_, err = conn.Read(received);
+		fmt.Println(string(received));
 
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		// Reset segment buffer
+		segmentBuffer = []byte{0};
 	}
 
 }
